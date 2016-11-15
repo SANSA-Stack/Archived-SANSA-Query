@@ -6,32 +6,20 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-
-
+.mvn/timing.properties
+# eclipse conf file
 .settings
 .classpath
-.preferences
 .project
-
-### Java template
-*.class
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.ear
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-
-# Created by .ignore support plugin (hsz.mobi)
-
-
+.manager
+.scala_dependencies
+.cashe
 .cache-main
-.iml
+.cache-tests
+.classpath
+/bin
 
-stat*.txt
-
+# filename i use to store output of mvn dependency:tree ~Claus
+deptree.txt
+# local project specific tmp folder
+tmp

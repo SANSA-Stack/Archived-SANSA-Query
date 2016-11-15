@@ -2,13 +2,12 @@ package net.sansa_stack.querying.spark.io
 
 /*import org.openjena.riot.RiotReader
 import org.openjena.riot.Lang*/
-import org.apache.spark.SparkContext
 import java.io.InputStream
 import org.apache.spark.rdd.RDD
 import org.apache.jena.riot.{ Lang, RDFDataMgr }
 import net.sansa_stack.querying.spark.utils.Logging
 import net.sansa_stack.querying.spark.model.Triples
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.SparkSession
 
 /**
  * Reads triples.
@@ -24,10 +23,10 @@ object TripleReader extends Logging {
     Triples(triples.getSubject(), triples.getPredicate(), triples.getObject())
   }
 
-  def loadFromFile(path: String, sc: SparkContext, minPartitions: Int = 2): RDD[Triples] = {
+  def loadFromFile(path: String, sparkSession: SparkSession, minPartitions: Int = 2): RDD[Triples] = {
 
     val triples =
-      sc.textFile(path)
+      sparkSession.sparkContext.textFile(path)
         .filter(line => !line.trim().isEmpty & !line.startsWith("#"))
         .map(parseTriples)
     triples

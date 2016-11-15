@@ -2,63 +2,68 @@ package net.sansa_stack.querying.spark.model
 
 import net.sansa_stack.querying.spark.io.TripleReader
 import net.sansa_stack.querying.spark.utils.SparkUtils
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructField
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.Encoders
 
 /*
  * DataStorageManager manages PropertyTable and other backend strategies for SparkSQLify. 
  * @author Gezim Sejdiu
  */
-class DataStorageManager(uniquePredicatesList: List[String])(@transient val sc: SparkContext, @transient val sql_c: SQLContext) extends Serializable {
+class DataStorageManager(uniquePredicatesList: List[String])(@transient val sparkSession: SparkSession) extends Serializable {
 
-  import sql_c.implicits._
-
+  import sparkSession.sqlContext.implicits._
   val columns = Seq("sub", "pred", "obj")
-  val u_predicates = sc.broadcast(sc.parallelize(uniquePredicatesList).distinct().collect().toList)
+  val u_predicates = sparkSession.sparkContext.broadcast(sparkSession.sparkContext.parallelize(uniquePredicatesList).distinct().collect().toList)
 
   /*
  * createPTT - creates TripleTable with (s,p,o) where p in on uniquePredicatesList.
  */
   def createPTT() = {
-       val ptt_df = TripleReader.loadFromFile(SparkUtils.HDFSPath, sc)
+    val ptt_df = TripleReader.loadFromFile(SparkUtils.HDFSPath, sparkSession)
       .filter {
         case f: Triples => u_predicates.value.contains(f.pred.toString())
       }
       .map(f => (f.subj.toString(), f.pred.toString(), f.obj.toString()))
       // .filter(f=>f.pred.getLiteralLexicalForm in uniquePredicatesList.map(_)))
-      .toDF(columns: _*)
-    ptt_df.registerTempTable("Triples")
-    sql_c.cacheTable("Triples")
+      .toDF(columns: _*);
+
+    ptt_df.createOrReplaceTempView("Triples")
+    sparkSession.catalog.cacheTable("Triples")
   }
 
   def createTT() = {
-    val ptt_df = TripleReader.loadFromFile(SparkUtils.HDFSPath, sc)
+    val ptt_df = TripleReader.loadFromFile(SparkUtils.HDFSPath, sparkSession)
       .filter {
         case f: Triples => u_predicates.value.contains(f.pred.toString())
       }
       .map(f => (f.subj.toString(), f.pred.toString(), f.obj.toString()))
-      // .filter(f=>f.pred.getLiteralLexicalForm in uniquePredicatesList.map(_)))
       .toDF(columns: _*)
-    ptt_df.registerTempTable("TriplesTable")
-    sql_c.cacheTable("TriplesTable")
+    ptt_df.createOrReplaceTempView("TriplesTable")
+    sparkSession.catalog.cacheTable("TriplesTable")
   }
 
   def transpose(df: DataFrame, compositeId: List[String], key: String, value: String) = {
+     val distinctCols = df.select(key).distinct.map { r => r(0).toString().substring(r(0).toString().lastIndexOf("/") + 1) }.collect().toList
 
-    val distinctCols = df.select(key).distinct.map { r => r(0) }.collect().toList
-    sc.parallelize(compositeId)
+    sparkSession.sparkContext.parallelize(compositeId)
+    type Encoder =(List[Any], scala.collection.mutable.Map[Any, Any])
+    
+    implicit val reverseKryoEncoder = Encoders.kryo[Encoder]
 
     val rdd = df.map { row =>
       (compositeId.collect { case id => row.getAs(id).asInstanceOf[Any] },
         scala.collection.mutable.Map(row.getAs(key).asInstanceOf[Any] -> row.getAs(value).asInstanceOf[Any]))
-    }
+    }.rdd
+    
     val pairRdd = rdd.reduceByKey(_ ++ _)
     val rowRdd = pairRdd.map(r => dynamicRow(r, distinctCols))
-    sql_c.createDataFrame(rowRdd, getSchema(df.schema, compositeId, (key, distinctCols)))
+    sparkSession.createDataFrame(rowRdd, getSchema(df.schema, compositeId, (key, distinctCols)))
 
   }
 
@@ -80,19 +85,18 @@ class DataStorageManager(uniquePredicatesList: List[String])(@transient val sc: 
  */
   def createPT() = {
     createTT()
-    var _tt = sql_c.sql("select * "
+    var _tt = sparkSession.sql("select * "
       + "from TriplesTable")
-     _tt.show()
-
+    _tt.show()
 
     val dfOutput = transpose(_tt, List("sub"), "pred", "obj")
-     dfOutput.registerTempTable("PropertyTable")
-    sql_c.cacheTable("PropertyTable")
-    
+    dfOutput.registerTempTable("PropertyTable")
+    sparkSession.catalog.cacheTable("PropertyTable")
+
     dfOutput.show
     dfOutput.printSchema()
 
-/*
+    /*
     for (predicate <- uniquePredicatesList) {
       var p_Table = sql_c.sql("select sub, obj "
         + "from triples where pred='" + predicate + "'")
@@ -101,6 +105,6 @@ class DataStorageManager(uniquePredicatesList: List[String])(@transient val sc: 
   }
 
   object DataStorageManager {
-    def apply(uniquePredicatesList: List[String])(sc: SparkContext, sql_c: SQLContext) = new DataStorageManager(uniquePredicatesList)(sc, sql_c)
+    def apply(uniquePredicatesList: List[String])(sparkSession: SparkSession) = new DataStorageManager(uniquePredicatesList)(sparkSession)
   }
 }

@@ -32,3 +32,4 @@ class Translator(queryStr: String) {
 object Translator {
   def apply(queryStr: String) = new Translator(queryStr)
 }
+
