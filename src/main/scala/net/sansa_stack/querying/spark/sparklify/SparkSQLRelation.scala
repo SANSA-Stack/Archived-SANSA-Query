@@ -53,7 +53,7 @@ case class SparkSQLRelation(sqlQuery: String, query: String, userSchema: StructT
        AND vicePresident  ='Andrew_Johnson'
       """
     val rs_sql = sqlContext.sql(temQuery)
-    println(rs_sql.queryExecution.executedPlan)
+   // println(rs_sql.queryExecution.executedPlan)
 
     val rows = ArrayBuffer[Row]()
 

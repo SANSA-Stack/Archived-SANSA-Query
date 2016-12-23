@@ -10,6 +10,7 @@ import org.apache.spark.sql.SQLContext
 import net.sansa_stack.querying.spark.utils.{ Logging, SparkUtils }
 import net.sansa_stack.querying.spark.sparql2sql.Translator
 import net.sansa_stack.querying.spark.model.DataStorageManager
+import org.apache.spark.sql.SparkSession
 
 object App extends Logging {
 
@@ -17,11 +18,11 @@ object App extends Logging {
 
     val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
 
-    val conf = new SparkConf().setAppName("SparkSQLify").setMaster("local[*]")
-    conf.setSparkHome("/opt/spark-1.5.1")
-    conf.setJars(SparkContext.jarOfClass(this.getClass).toSeq)
-    val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
+   val sparkSession = SparkSession.builder
+      .master("local")
+      .appName("spark session example")
+      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .getOrCreate()
 
     SparkUtils.setLogLevels(org.apache.log4j.Level.WARN, Seq("org.apache", "spark", "org.eclipse.jetty", "akka", "org"))
 
@@ -30,19 +31,18 @@ object App extends Logging {
 
     SparkUtils.HDFSPath = "src/test/resources/dbpedia_sample.nt"
 
+    val r = new DataStorageManager(List("vicePresident", "region", "termPeriod"))(sparkSession)
+    r.createPT()
+
     val query = """
    SELECT ?vicePresident
       WHERE
-       { <Abraham_Lincoln> <vicePresident> ?vicepresident.
+       { <Abraham_Lincoln> <vicePresident> ?vcepresident.
        }
    """
     val translator = Translator(query)
     val sql = translator.getSQL
-
-    val r = new DataStorageManager(List("vicePresident", "region", "termPeriod"))(sc, sqlContext)
-    r.createPT()
-
-    val dataFrame = sqlContext.querySparkSQLify(sql, query)
+    val dataFrame = sparkSession.querySparkSQLify(sql, query)
     dataFrame.printSchema()
     dataFrame.show()
 

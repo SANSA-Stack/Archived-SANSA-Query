@@ -90,17 +90,11 @@ class DataStorageManager(uniquePredicatesList: List[String])(@transient val spar
     _tt.show()
 
     val dfOutput = transpose(_tt, List("sub"), "pred", "obj")
-    dfOutput.registerTempTable("PropertyTable")
+    dfOutput.createOrReplaceTempView("PropertyTable")
     sparkSession.catalog.cacheTable("PropertyTable")
 
     dfOutput.show
     dfOutput.printSchema()
-
-    /*
-    for (predicate <- uniquePredicatesList) {
-      var p_Table = sql_c.sql("select sub, obj "
-        + "from triples where pred='" + predicate + "'")
-    }*/
 
   }
 
