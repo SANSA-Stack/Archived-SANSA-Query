@@ -20,6 +20,8 @@ class Translator(queryStr: String) {
   SparkUtils.uniquePredicatesList = visitor.uniquePredicatesList
 
   val getSQL = visitor.getSQL()
+  val getResSQL = visitor.getResult()
+  
   val prefixStr = query.getPrefixMapping()
     .getNsPrefixMap
     .toList
