@@ -18,7 +18,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read a N-Triple file and convert into a graph with 43 triplets") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -31,7 +31,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 1 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -63,7 +63,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 2 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -92,7 +92,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 3 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -127,7 +127,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 4 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -159,7 +159,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 5 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -185,7 +185,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 6 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -208,7 +208,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 8 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -242,7 +242,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 10 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -271,7 +271,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 11 and run the query") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 
@@ -290,7 +290,7 @@ class TestSparqlToSpark extends FunSuite with DataFrameSuiteBase {
 
   test("read query 1 with result rdd") {
 
-    val nTriplePath = "src/test/resources/Clustering_sampledata.nt"
+    val nTriplePath = "src/test/resources/sampledata.nt"
     val lang: Lang = Lang.NTRIPLES
     val triples = spark.rdf(lang)(nTriplePath)
 

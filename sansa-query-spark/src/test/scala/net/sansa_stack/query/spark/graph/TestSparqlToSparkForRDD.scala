@@ -14,7 +14,7 @@ class TestSparqlToSparkForRDD extends FunSuite with DataFrameSuiteBase {
   import net.sansa_stack.rdf.spark.model.graph._
 
   test("bgp matching test") {
-    val path = "sansa-query-spark/src/test/resources/S2X.nt"
+    val path = "src/test/resources/sampledata.nt"
     val lang = Lang.NTRIPLES
     val graph = spark.rdf(lang)(path).asGraph().cache()
 
@@ -45,8 +45,8 @@ class TestSparqlToSparkForRDD extends FunSuite with DataFrameSuiteBase {
 
   test("read query 1 and run the query") {
 
-    Config.setInputGraphFile("sansa-query-spark/src/test/resources/Clustering_sampledata.nt")
-      .setInputQueryFile("sansa-query-spark/src/test/resources/queries/query1.txt")
+    Config.setInputGraphFile("src/test/resources/sampledata.nt")
+      .setInputQueryFile("src/test/resources/queries/query1.txt")
       .setLang(Lang.NTRIPLES)
     SparkExecutionModel.setSparkSession(spark)
     SparkExecutionModel.loadGraph()
@@ -71,8 +71,8 @@ class TestSparqlToSparkForRDD extends FunSuite with DataFrameSuiteBase {
   }
 
   test("read query 2 and run the query") {
-    Config.setInputGraphFile("sansa-query-spark/src/test/resources/Clustering_sampledata.nt")
-      .setInputQueryFile("sansa-query-spark/src/test/resources/queries/query2.txt")
+    Config.setInputGraphFile("src/test/resources/sampledata.nt")
+      .setInputQueryFile("src/test/resources/queries/query2.txt")
       .setLang(Lang.NTRIPLES)
     SparkExecutionModel.setSparkSession(spark)
     SparkExecutionModel.loadGraph()
