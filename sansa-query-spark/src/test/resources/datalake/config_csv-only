@@ -7,7 +7,7 @@
 			"delimiter": ",",
 			"mode": "DROPMALFORMED"
 		},
-		"source": "src/main/resources/Data/person.csv",
+		"source": "src/test/resources/datalake/Data/person.csv",
 		"entity": "Person"
 	}
 	,	{
@@ -17,7 +17,7 @@
 			"delimiter": ",",
 			"mode": "DROPMALFORMED"
 		},
-		"source": "src/main/resources/Data/review.csv",
+		"source": "src/test/resources/datalake/Data/review.csv",
 		"entity": "Review"
 	}
 	,	{
@@ -27,7 +27,7 @@
 			"delimiter": ",",
 			"mode": "DROPMALFORMED"
 		},
-		"source": "src/main/resources/Data/offer.csv",
+		"source": "src/test/resources/datalake/Data/offer.csv",
 		"entity": "Offer"
 	}
 	,	{
@@ -37,7 +37,7 @@
 			"delimiter": ",",
 			"mode": "DROPMALFORMED"
 		},
-		"source": "src/main/resources/Data/product.csv",
+		"source": "src/test/resources/datalake/Data/product.csv",
 		"entity": "Product"
 	}
 	,	{
@@ -47,7 +47,7 @@
 			"delimiter": ",",
 			"mode": "DROPMALFORMED"
 		},
-		"source": "src/main/resources/Data/producer.csv",
+		"source": "src/test/resources/datalake/Data/producer.csv",
 		"entity": "Producer"
 	}
 	],

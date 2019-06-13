@@ -15,7 +15,7 @@
 
 <#ProducerMapping>
 	rml:logicalSource [
-		rml:source "src/main/resources/Data/producer.csv";
+		rml:source "src/test/resources/datalake/Data/producer.csv";
 		nosql:store nosql:csv
 	];
 	rr:subjectMap [
@@ -55,7 +55,7 @@
 
 <#ReviewMapping>
 	rml:logicalSource [
-		rml:source "src/main/resources/Data/review.csv";
+		rml:source "src/test/resources/datalake/Data/review.csv";
 		nosql:store nosql:csv
 	];
 	rr:subjectMap [
@@ -130,7 +130,7 @@
 
 <#PersonMapping>
 	rml:logicalSource [
-		rml:source "src/main/resources/Data/person.csv";
+		rml:source "src/test/resources/datalake/Data/person.csv";
 		nosql:store nosql:csv
 	];
 	rr:subjectMap [
@@ -165,7 +165,7 @@
 
 <#OfferMapping>
 	rml:logicalSource [
-		rml:source "src/main/resources/Data/offer.csv";
+		rml:source "src/test/resources/datalake/Data/offer.csv";
 		nosql:store nosql:csv
 	];
 	rr:subjectMap [
@@ -225,7 +225,7 @@
 
 <#ProductMapping>
 	rml:logicalSource [
-		rml:source "src/main/resources/Data/product.csv";
+		rml:source "src/test/resources/datalake/Data/product.csv";
 		nosql:store nosql:csv
 	];
 	rr:subjectMap [
