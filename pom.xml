@@ -373,22 +373,30 @@
 				<version>4.12</version>
 			</dependency>
 
-                        <!-- Ontop -->
+			<!-- Ontop -->
 			<dependency>
-			  <groupId>it.unibz.inf.ontop</groupId>
-			  <artifactId>ontop-owlapi</artifactId>
-			  <version>3.0.0-beta-2</version>
+				<groupId>it.unibz.inf.ontop</groupId>
+				<artifactId>ontop-owlapi</artifactId>
+				<version>3.0.0-beta-2</version>
 			</dependency>
 			<dependency>
-			  <groupId>it.unibz.inf.ontop</groupId>
-			  <artifactId>ontop-system-sql-owlapi</artifactId>
-			  <version>3.0.0-beta-2</version>
+				<groupId>it.unibz.inf.ontop</groupId>
+				<artifactId>ontop-system-sql-owlapi</artifactId>
+				<version>3.0.0-beta-2</version>
 			</dependency>
 
 
 		</dependencies>
 	</dependencyManagement>
 
+
+
+	<dependencies>
+		<dependency>
+			<groupId>org.scalatest</groupId>
+			<artifactId>scalatest_${scala.binary.version}</artifactId>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -425,6 +433,11 @@
 			<plugin>
 				<groupId>com.amashchenko.maven.plugin</groupId>
 				<artifactId>gitflow-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.scalatest</groupId>
+				<artifactId>scalatest-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 
@@ -691,6 +704,26 @@
 						<execution>
 							<goals>
 								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- enable scalatest -->
+				<plugin>
+					<groupId>org.scalatest</groupId>
+					<artifactId>scalatest-maven-plugin</artifactId>
+					<version>1.0</version>
+					<configuration>
+						<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+						<junitxml>.</junitxml>
+						<filereports>SANSA-RDF-Tests.txt</filereports>
+					</configuration>
+					<executions>
+						<execution>
+							<id>test</id>
+							<goals>
+								<goal>test</goal>
 							</goals>
 						</execution>
 					</executions>
