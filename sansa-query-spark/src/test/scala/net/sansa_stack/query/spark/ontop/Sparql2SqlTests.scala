@@ -15,10 +15,9 @@ class Sparql2SqlTests extends FunSuite with DataFrameSuiteBase {
     val sparqlFile = getClass.getResource("/mappings/q1.rq").getPath
     val owlFile = getClass.getResource("/mappings/onto.owl").getPath
     val propertyFile = getClass.getResource("/mappings/properties.conf").getPath
-    // val result = spark.sparqlDL(query, mappingsFile, configFile)
 
-    val sqlObtained = Sparql2Sql.obtainSQL( sparqlFile, mappingsFile, owlFile, propertyFile)
-    println(sqlObtained)
+    // FIXME
+    // val sqlObtained = Sparql2Sql.obtainSQL( sparqlFile, mappingsFile, owlFile, propertyFile)
 
     // val stream : InputStream = getClass.getResourceAsStream(sparqlFile)
     // val lines = scala.io.Source.fromInputStream(stream).getLines
