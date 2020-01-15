@@ -2,8 +2,10 @@ package net.sansa_stack.query.flink.sparqlify
 
 import java.util.Collections
 
+import org.aksw.commons.util.strings.StringUtils
+
 import collection.JavaConverters._
-import org.aksw.sparqlify.config.v0_2.bridge.{ BasicTableInfo, BasicTableInfoProvider }
+import org.aksw.sparqlify.config.v0_2.bridge.{BasicTableInfo, BasicTableInfoProvider}
 import org.apache.flink.table.api.scala.BatchTableEnvironment
 
 /**
@@ -14,10 +16,11 @@ class BasicTableInfoProviderFlink(flinkTable: BatchTableEnvironment)
   override def getBasicTableInfo(queryString: String): BasicTableInfo = {
     val table = flinkTable.sqlQuery(queryString)
     val schema = table.getSchema
-    val types = schema.getTypes
-    val names = schema.getColumnNames
-    val map = (0 until types.length).map { i =>
-      (names(i), types(i).toString)
+    val types = schema.getFieldDataTypes
+    val names = schema.getFieldNames
+    val map = (0 until types.length).map { i => {
+      (names(i), types(i).toString.toLowerCase.capitalize)
+    }
     } toMap
 
     println(map)
