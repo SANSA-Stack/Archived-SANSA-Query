@@ -6,6 +6,7 @@ import it.unibz.inf.ontop.dbschema.MetadataProvider
 import it.unibz.inf.ontop.dbschema.impl.OfflineMetadataProviderBuilder
 import it.unibz.inf.ontop.injection.OntopModelConfiguration
 
+import net.sansa_stack.query.common.ontop.BlankNodeStrategy
 import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
 import net.sansa_stack.rdf.common.partition.schema.{SchemaStringBoolean, SchemaStringDate, SchemaStringDouble, SchemaStringFloat, SchemaStringStringType}
 /**

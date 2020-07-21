@@ -1,13 +1,10 @@
-package net.sansa_stack.query.spark.ontop
+package net.sansa_stack.query.common.ontop
 
 import java.sql.{Connection, SQLException}
 
-import org.apache.spark.sql.catalyst.ScalaReflection
-import org.apache.spark.sql.types.StructType
-
 import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
-import net.sansa_stack.rdf.common.partition.schema.{SchemaStringBoolean, SchemaStringDate, SchemaStringDecimal, SchemaStringDouble, SchemaStringFloat, SchemaStringLong, SchemaStringString, SchemaStringStringLang, SchemaStringStringType}
-import scala.reflect.runtime.universe.typeOf
+import net.sansa_stack.rdf.common.partition.schema._
+import scala.reflect.runtime.universe._
 
 /**
  * Setup the JDBC database needed for the Ontop metadata extraction.
@@ -36,7 +33,8 @@ object JDBCDatabaseGenerator {
    * @param connection the database connection
    * @param partitions the partitions
    */
-  def generateTables(connection: Connection, partitions: Set[RdfPartitionComplex],
+  def generateTables(connection: Connection,
+                     partitions: Set[RdfPartitionComplex],
                      blankNodeStrategy: BlankNodeStrategy.Value = BlankNodeStrategy.Table): Unit = {
     try {
       val stmt = connection.createStatement()
@@ -47,8 +45,7 @@ object JDBCDatabaseGenerator {
 
         val name = SQLUtils.createTableName(p, blankNodeStrategy)
 
-        val sparkSchema = ScalaReflection.schemaFor(p.layout.schema).dataType.asInstanceOf[StructType]
-        logger.trace(s"creating table for property ${p.predicate} with Spark schema $sparkSchema and layout ${p.layout.schema}")
+//        logger.trace(s"creating table for property ${p.predicate} with Spark schema $sparkSchema and layout ${p.layout.schema}")
 
         p match {
           case RdfPartitionComplex(subjectType, predicate, objectType, datatype, langTagPresent, lang, partitioner) =>

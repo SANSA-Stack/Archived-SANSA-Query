@@ -13,6 +13,7 @@ import org.semanticweb.owlapi.apibinding.OWLManager
 import org.semanticweb.owlapi.model.{HasDataPropertiesInSignature, HasObjectPropertiesInSignature, OWLOntology}
 import scopt.OParser
 
+import net.sansa_stack.query.common.ontop.PartitionSerDe
 import net.sansa_stack.rdf.common.partition.core.{RdfPartitionComplex, RdfPartitionerComplex}
 import net.sansa_stack.rdf.spark.partition.core.RdfPartitionUtilsSpark
 

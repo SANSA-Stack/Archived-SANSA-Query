@@ -1,10 +1,9 @@
-package net.sansa_stack.query.spark.ontop
+package net.sansa_stack.query.common.ontop
 
-import java.io.StringReader
 import java.sql.{Connection, DriverManager, SQLException}
 import java.util.Properties
 
-import it.unibz.inf.ontop.injection.{OntopMappingSQLAllConfiguration, OntopMappingSQLAllOWLAPIConfiguration, OntopReformulationSQLConfiguration, OntopSQLOWLAPIConfiguration}
+import it.unibz.inf.ontop.injection.OntopReformulationSQLConfiguration
 import org.semanticweb.owlapi.model.OWLOntology
 
 import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex

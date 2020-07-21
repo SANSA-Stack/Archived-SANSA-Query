@@ -86,6 +86,12 @@
 		<module>sansa-query-tests</module>
 	</modules>
 
+	<properties>
+		<version.ontop>4.0.0-rc-1</version.ontop>
+		<!--        <version.ontop>4.0.0-beta-2-SNAPSHOT</version.ontop>-->
+		<version.owlapi.ontop>4.5.7</version.owlapi.ontop>
+	</properties>
+
 	<profiles>
 		<profile>
 			<id>doclint-java8-disable</id>
@@ -186,6 +192,12 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 <!--				<type>test-jar</type>-->
+			</dependency>
+
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>sansa-query-common${scala.version.suffix}</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 
 		</dependencies>

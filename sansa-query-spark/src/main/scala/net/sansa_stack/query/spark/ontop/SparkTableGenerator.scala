@@ -8,6 +8,7 @@ import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.types.StructType
 
+import net.sansa_stack.query.common.ontop.BlankNodeStrategy
 import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
 
 /**

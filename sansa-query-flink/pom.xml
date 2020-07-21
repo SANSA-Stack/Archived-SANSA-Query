@@ -10,18 +10,24 @@
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <version.ontop>4.0.0-rc-1</version.ontop>
+        <!--        <version.ontop>4.0.0-beta-2-SNAPSHOT</version.ontop>-->
+        <version.owlapi.ontop>4.5.7</version.owlapi.ontop>
+    </properties>
+
 
     <dependencies>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>sansa-rdf-flink${scala.version.suffix}</artifactId>
+            <artifactId>sansa-query-common${scala.version.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>sansa-rdf-spark${scala.version.suffix}</artifactId>
+            <artifactId>sansa-rdf-flink${scala.version.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -75,6 +81,76 @@
             <artifactId>protobuf-java</artifactId>
             <version>3.3.1</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Ontop -->
+        <dependency>
+            <groupId>it.unibz.inf.ontop</groupId>
+            <artifactId>ontop-owlapi</artifactId>
+            <version>${version.ontop}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.jena</groupId>
+                    <artifactId>jena-osgi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>it.unibz.inf.ontop</groupId>
+            <artifactId>ontop-system-sql-owlapi</artifactId>
+            <version>${version.ontop}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.jena</groupId>
+                    <artifactId>jena-osgi</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>it.unibz.inf.ontop</groupId>
+            <artifactId>ontop-rdb</artifactId>
+            <version>${version.ontop}</version>
+            <!--
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.javabits.jgrapht</groupId>
+                                <artifactId>jgrapht-core</artifactId>
+                            </exclusion>
+                        </exclusions>
+            -->
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.200</version>
+        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>it.unibz.inf.ontop</groupId>-->
+        <!--            <artifactId>ontop-sparql-compliance</artifactId>-->
+        <!--            <version>${version.ontop}</version>-->
+        <!--            <type>test-jar</type>-->
+        <!--            <scope>test</scope>-->
+        <!--        </dependency>-->
+        <!-- need to overwrite OWL API 5 with v4 used by Ontop -->
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlapi-api</artifactId>
+            <version>${version.owlapi.ontop}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlapi-apibinding</artifactId>
+            <version>${version.owlapi.ontop}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlapi-impl</artifactId>
+            <version>${version.owlapi.ontop}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlapi-parsers</artifactId>
+            <version>${version.owlapi.ontop}</version>
         </dependency>
 
 

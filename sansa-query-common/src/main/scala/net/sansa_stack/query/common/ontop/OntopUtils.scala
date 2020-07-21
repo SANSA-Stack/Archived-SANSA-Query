@@ -1,4 +1,4 @@
-package net.sansa_stack.query.spark.ontop
+package net.sansa_stack.query.common.ontop
 
 import java.io.StringReader
 import java.util.Properties

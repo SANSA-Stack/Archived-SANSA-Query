@@ -8,10 +8,11 @@ import org.apache.jena.vocabulary.RDF
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.catalyst.ScalaReflection
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Row, SaveMode => TableSaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession, SaveMode => TableSaveMode}
 import org.semanticweb.owlapi.apibinding.OWLManager
 import org.semanticweb.owlapi.model.{HasDataPropertiesInSignature, HasObjectPropertiesInSignature, IRI}
 
+import net.sansa_stack.query.common.ontop.{BlankNodeStrategy, PartitionSerDe}
 import net.sansa_stack.rdf.common.partition.core.{RdfPartitionComplex, RdfPartitionerComplex}
 import net.sansa_stack.rdf.spark.partition.core.RdfPartitionUtilsSpark
 

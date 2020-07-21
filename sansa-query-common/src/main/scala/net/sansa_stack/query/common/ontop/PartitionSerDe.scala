@@ -1,4 +1,4 @@
-package net.sansa_stack.query.spark.ontop
+package net.sansa_stack.query.common.ontop
 
 import java.nio.file.{Files, Path}
 
@@ -10,8 +10,6 @@ import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
  * @author Lorenz Buehmann
  */
 object PartitionSerDe {
-
-
 
   val kryo: KryoBase = {
     val instantiator = new ScalaKryoInstantiator()

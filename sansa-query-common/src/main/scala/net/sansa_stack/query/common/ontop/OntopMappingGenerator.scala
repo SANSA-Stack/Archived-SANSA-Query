@@ -1,13 +1,13 @@
-package net.sansa_stack.query.spark.ontop
+package net.sansa_stack.query.common.ontop
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.jena.vocabulary.{RDF, XSD}
-import org.semanticweb.owlapi.model.{OWLOntology, OWLSignature}
+import org.semanticweb.owlapi.model.OWLOntology
+import org.semanticweb.owlapi.model.parameters.Imports
 
 import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
-import scala.collection.JavaConverters._
 
-import org.semanticweb.owlapi.model.parameters.Imports
+import scala.collection.JavaConverters._
 
 /**
  * @author Lorenz Buehmann

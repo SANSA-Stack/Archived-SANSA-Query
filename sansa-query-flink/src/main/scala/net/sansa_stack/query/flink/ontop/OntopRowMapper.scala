@@ -1,30 +1,27 @@
-package net.sansa_stack.query.spark.ontop
+package net.sansa_stack.query.flink.ontop
 
 import java.util.Properties
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+
 import com.google.common.collect.ImmutableMap
 import it.unibz.inf.ontop.answering.reformulation.input.{ConstructQuery, ConstructTemplate}
-import it.unibz.inf.ontop.exception.{MinorOntopInternalBugException, OntopInternalBugException}
-import it.unibz.inf.ontop.iq.exception.EmptyQueryException
-import it.unibz.inf.ontop.iq.node.{ConstructionNode, NativeNode}
-import it.unibz.inf.ontop.iq.{IQ, UnaryIQTree}
+import it.unibz.inf.ontop.exception.OntopInternalBugException
 import it.unibz.inf.ontop.model.`type`.TypeFactory
 import it.unibz.inf.ontop.model.term._
 import it.unibz.inf.ontop.substitution.SubstitutionFactory
-
-import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
+import org.apache.flink.types.Row
 import org.apache.jena.datatypes.TypeMapper
 import org.apache.jena.graph.{Node, NodeFactory, Triple}
 import org.apache.jena.sparql.core.Var
 import org.apache.jena.sparql.engine.binding.{Binding, BindingFactory}
-import org.apache.spark.sql.Row
 import org.eclipse.rdf4j.model.{IRI, Literal}
 import org.eclipse.rdf4j.query.algebra.{ProjectionElem, ValueConstant, ValueExpr}
 import org.semanticweb.owlapi.model.OWLOntology
-import scala.collection.JavaConverters._
-import scala.collection.mutable
 
 import net.sansa_stack.query.common.ontop.{OntopConnection, OntopUtils}
+import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
 
 /**
  * Mapper of Spark DataFrame rows to other entities, e.g. binding, triple, ...
@@ -75,7 +72,7 @@ class OntopRowMapper(
     val it = sqlSignature.iterator()
     for (i <- 0 until sqlSignature.size()) {
       val variable = it.next()
-      val value = row.get(i)
+      val value = row.getField(i)
       val sqlType = sqlTypeMap.get(variable)
       val constant = if (value == null) termFactory.getNullConstant else termFactory.getDBConstant(value.toString, sqlType)
       builder.put(variable, constant)
@@ -95,7 +92,7 @@ class OntopRowMapper(
     binding
   }
 
-  def toTriples(rows: Iterator[Row]): Iterator[Triple] = {
+  def toTriples(rows: Iterable[Row]): Iterable[Triple] = {
     val constructTemplate = inputQuery.asInstanceOf[ConstructQuery].getConstructTemplate
 
     val ex = constructTemplate.getExtension

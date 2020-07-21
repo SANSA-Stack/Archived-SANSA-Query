@@ -1,7 +1,7 @@
-package net.sansa_stack.query.spark.ontop
+package net.sansa_stack.query.flink.ontop
 
 import java.sql.{Connection, DriverManager, SQLException}
-import java.util
+import java.{lang, util}
 import java.util.Properties
 
 import com.google.common.collect.{ImmutableMap, ImmutableSortedSet, Sets}
@@ -20,15 +20,23 @@ import org.apache.jena.graph.Triple
 import org.apache.jena.query.{QueryFactory, QueryType}
 import org.apache.jena.sparql.engine.binding.Binding
 import org.apache.jena.vocabulary.RDF
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.StringType
-import org.apache.spark.sql.{DataFrame, Encoder, Row, SparkSession}
 import org.semanticweb.owlapi.apibinding.OWLManager
 import org.semanticweb.owlapi.model.{IRI, OWLAxiom, OWLOntology}
 import scala.collection.JavaConverters._
 
-import net.sansa_stack.query.common.ontop.{BlankNodeStrategy, JDBCDatabaseGenerator, OntopMappingGenerator, OntopUtils}
+import org.apache.flink.api.common.functions.{MapPartitionFunction, RichMapPartitionFunction}
+import org.apache.flink.api.scala.DataSet
+import org.apache.flink.table.api.{Table, TableEnvironment}
+import org.apache.flink.api.scala._
+import org.apache.flink.configuration.Configuration
+import org.apache.flink.table.api._
+import org.apache.flink.table.api.bridge.scala._
+import org.apache.flink.types.Row
+import org.apache.flink.util.Collector
+
+import net.sansa_stack.query.common.ontop.{BlankNodeStrategy, JDBCDatabaseGenerator, OntopMappingGenerator, OntopUtils, SQLUtils}
+
+
 
 trait SPARQL2SQLRewriter[T <: QueryRewrite] {
   def createSQLQuery(sparqlQuery: String): T
@@ -143,12 +151,12 @@ object OntopSPARQL2SQLRewriter {
 /**
  * A SPARQL engine based on Ontop as SPARQL-to-SQL rewriter.
  *
- * @param spark the Spark session
+ * @param env the Flink table environment
  * @param databaseName an existing Spark database that contains the tables for the RDF partitions
  * @param partitions the RDF partitions
  * @param ontology an (optional) ontology that will be used for query optimization and rewriting
  */
-class OntopSPARQLEngine(val spark: SparkSession,
+class OntopSPARQLEngine(val env: BatchTableEnvironment,
                         val databaseName: String,
                         val partitions: Set[RdfPartitionComplex],
                         var ontology: Option[OWLOntology]) {
@@ -170,7 +178,7 @@ class OntopSPARQLEngine(val spark: SparkSession,
   val rdfDatatype2SQLCastName = DatatypeMappings(typeFactory)
 
   if (databaseName != null && databaseName.trim.nonEmpty) {
-    spark.sql(s"USE $databaseName")
+    env.useDatabase(databaseName)
   }
 
   private def createOntology(): Option[OWLOntology] = {
@@ -183,9 +191,9 @@ class OntopSPARQLEngine(val spark: SparkSession,
 
       val sql = names.map(name => s"SELECT DISTINCT o FROM $name").mkString(" UNION ")
 
-      val df = spark.sql(sql)
+      val ds = env.sqlQuery(sql).toDataSet[Row]
 
-      val classes = df.collect().map(_.getString(0))
+      val classes = ds.collect().map(_.get(0).toString)
 
       val dataFactory = OWLManager.getOWLDataFactory
       val axioms: Set[OWLAxiom] = classes.map(cls =>
@@ -210,12 +218,11 @@ class OntopSPARQLEngine(val spark: SparkSession,
    * Free resources, e.g. unregister Spark tables.
    */
   def clear(): Unit = {
-    spark.catalog.clearCache()
-//    spark.catalog.listTables().foreach { case (table: Table) => spark.catalog.dropTempView(table.name)}
+
   }
 
-  private def postProcess(df: DataFrame, queryRewrite: OntopQueryRewrite): DataFrame = {
-    var result = df
+  private def postProcess(table: Table, queryRewrite: OntopQueryRewrite): Table = {
+    var result = table
 
     // all projected variables
     val signature = queryRewrite.answerAtom.getArguments
@@ -230,7 +237,7 @@ class OntopSPARQLEngine(val spark: SparkSession,
       .map { case (v, term) => (v, term.getVariableStream.findFirst().get()) }
       .toMap
     columnMappings.foreach {
-      case (sparqlVar, sqlVar) => result = result.withColumnRenamed(sqlVar.getName, sparqlVar.getName)
+      case (sparqlVar, sqlVar) => result = result.renameColumns($"${sqlVar.getName}" as s"${sparqlVar.getName}")
     }
 
     // append the lang tags
@@ -259,11 +266,11 @@ class OntopSPARQLEngine(val spark: SparkSession,
           if (simplifiedTerm.isInstanceOf[RDFConstant]) { // the only case we cover
             simplifiedTerm match {
               case iri: IRIConstant => // IRI will be String in Spark
-                result = result.withColumn(v.getName, lit(iri.getIRI.getIRIString))
+                result = result.addOrReplaceColumns(lit(iri.getIRI.getIRIString) as v.getName)
               case l: RDFLiteralConstant => // literals casted to its corresponding type, otherwise String
                 val lexicalValue = l.getValue
-                val castType = rdfDatatype2SQLCastName.getOrElse(l.getType, StringType)
-                result = result.withColumn(v.getName, lit(lexicalValue).cast(castType))
+                val castType = rdfDatatype2SQLCastName.getOrElse(l.getType, DataTypes.STRING())
+                result = result.addOrReplaceColumns(lit(lexicalValue).cast(castType) as v.getName)
               case _ =>
             }
           } else {
@@ -295,7 +302,7 @@ class OntopSPARQLEngine(val spark: SparkSession,
    *         (None if the SQL query was empty)
    * @throws org.apache.spark.sql.AnalysisException if the query execution fails
    */
-  def executeDebug(query: String): (DataFrame, Option[OntopQueryRewrite]) = {
+  def executeDebug(query: String): (Table, Option[OntopQueryRewrite]) = {
     logger.info(s"SPARQL query:\n$query")
 
     try {
@@ -306,7 +313,7 @@ class OntopSPARQLEngine(val spark: SparkSession,
       logger.info(s"SQL query:\n$sql")
 
       // execute SQL query
-      val resultRaw = spark.sql(sql)
+      val resultRaw = env.sqlQuery(sql)
       //    result.show(false)
       //    result.printSchema()
 
@@ -329,7 +336,7 @@ class OntopSPARQLEngine(val spark: SparkSession,
    * @return a DataFrame with the resulting bindings as columns
    * @throws org.apache.spark.sql.AnalysisException if the query execution fails
    */
-  def execute(query: String): DataFrame = {
+  def execute(query: String): Table = {
     val (resultRaw, queryRewrite) = executeDebug(query)
     var result = resultRaw
 
@@ -347,26 +354,12 @@ class OntopSPARQLEngine(val spark: SparkSession,
    * @return an RDD of solution bindings
    * @throws org.apache.spark.sql.AnalysisException if the query execution fails
    */
-  def execSelect(query: String): RDD[Binding] = {
+  def execSelect(query: String): DataSet[Binding] = {
     checkQueryType(query, QueryType.SELECT)
 
     val df = executeDebug(query)._1
 
-    val sparqlQueryBC = spark.sparkContext.broadcast(query)
-    val mappingsBC = spark.sparkContext.broadcast(sparql2sql.mappings)
-    val propertiesBC = spark.sparkContext.broadcast(sparql2sql.ontopProperties)
-    val partitionsBC = spark.sparkContext.broadcast(partitions)
-    val ontologyBC = spark.sparkContext.broadcast(ontology)
-
-    implicit val bindingEncoder: Encoder[Binding] = org.apache.spark.sql.Encoders.kryo[Binding]
-    df.coalesce(20).mapPartitions(iterator => {
-//      println("mapping partition")
-      val mapper = new OntopRowMapper(mappingsBC.value, propertiesBC.value, partitionsBC.value, sparqlQueryBC.value, ontologyBC.value)
-      val it = iterator.map(mapper.map)
-//      mapper.close()
-      it
-    }).rdd
-
+    df.mapPartition(new MapRowsToBindingsFunction(query, sparql2sql.mappings,sparql2sql.ontopProperties, partitions, ontology))
   }
 
   /**
@@ -379,34 +372,22 @@ class OntopSPARQLEngine(val spark: SparkSession,
   def execAsk(query: String): Boolean = {
     checkQueryType(query, QueryType.ASK)
     val df = executeDebug(query)._1
-    !df.isEmpty
+    !df.
   }
 
   /**
    * Executes a CONSTRUCT query on the provided dataset partitions.
    *
    * @param query the SPARQL query
-   * @return an RDD of triples
+   * @return a DataSet of triples
    * @throws org.apache.spark.sql.AnalysisException if the query execution fails
    */
-  def execConstruct(query: String): RDD[org.apache.jena.graph.Triple] = {
+  def execConstruct(query: String): DataSet[org.apache.jena.graph.Triple] = {
     checkQueryType(query, QueryType.CONSTRUCT)
 
-    val df = executeDebug(query)._1
+    val ds = executeDebug(query)._1
 
-    val sparqlQueryBC = spark.sparkContext.broadcast(query)
-    val mappingsBC = spark.sparkContext.broadcast(sparql2sql.mappings)
-    val propertiesBC = spark.sparkContext.broadcast(sparql2sql.ontopProperties)
-    val partitionsBC = spark.sparkContext.broadcast(partitions)
-    val ontologyBC = spark.sparkContext.broadcast(ontology)
-
-    implicit val tripleEncoder: Encoder[Triple] = org.apache.spark.sql.Encoders.kryo[Triple]
-    df.mapPartitions(iterator => {
-      val mapper = new OntopRowMapper(mappingsBC.value, propertiesBC.value, partitionsBC.value, sparqlQueryBC.value, ontologyBC.value)
-      val it = mapper.toTriples(iterator)
-      mapper.close()
-      it
-    }).rdd
+    ds.mapPartition(new MapRowsToTriplesFunction(query, sparql2sql.mappings,sparql2sql.ontopProperties, partitions, ontology))
   }
 
   private def checkQueryType(query: String, queryType: QueryType) = {
@@ -418,20 +399,50 @@ class OntopSPARQLEngine(val spark: SparkSession,
 
 }
 
+class MapRowsToTriplesFunction(query: String,
+                               mappings: String,
+                               properties: Properties,
+                               partitions: Set[RdfPartitionComplex],
+                               ontology: Option[OWLOntology])
+  extends MapPartitionFunction[Row, Triple] {
+
+  override def mapPartition(iterable: lang.Iterable[Row], collector: Collector[Triple]): Unit = {
+    val mapper = new OntopRowMapper(mappings, properties, partitions, query, ontology)
+    mapper.toTriples(iterable.asScala).foreach(collector.collect)
+    mapper.close()
+  }
+}
+
+class MapRowsToBindingsFunction(query: String,
+                               mappings: String,
+                               properties: Properties,
+                               partitions: Set[RdfPartitionComplex],
+                               ontology: Option[OWLOntology])
+  extends MapPartitionFunction[Row, Binding] {
+
+  override def mapPartition(iterable: lang.Iterable[Row], collector: Collector[Binding]): Unit = {
+    val mapper = new OntopRowMapper(mappings, properties, partitions, query, ontology)
+    iterable.forEach(row => collector.collect(mapper.map(row)))
+    mapper.close()
+  }
+}
+
+
+
 object OntopSPARQLEngine {
 
   def main(args: Array[String]): Unit = {
     new OntopCLI().run(args)
   }
 
-  def apply(spark: SparkSession, databaseName: String, partitions: Set[RdfPartitionComplex], ontology: Option[OWLOntology]): OntopSPARQLEngine
-  = new OntopSPARQLEngine(spark, databaseName, partitions, ontology)
+  def apply(env: TableEnvironment, databaseName: String, partitions: Set[RdfPartitionComplex], ontology: Option[OWLOntology]): OntopSPARQLEngine
+  = new OntopSPARQLEngine(env, databaseName, partitions, ontology)
 
-  def apply(spark: SparkSession, partitions: Map[RdfPartitionComplex, RDD[Row]], ontology: Option[OWLOntology]): OntopSPARQLEngine = {
+  def apply(env: BatchTableEnvironment, partitions: Map[RdfPartitionComplex, DataSet[Product]], ontology: Option[OWLOntology]): OntopSPARQLEngine = {
     // create and register Spark tables
-    SparkTableGenerator(spark).createAndRegisterSparkTables(partitions)
+    FlinkTableGenerator(env).createAndRegisterFlinkTables(partitions)
 
-    new OntopSPARQLEngine(spark, null, partitions.keySet, ontology)
+    new OntopSPARQLEngine(env, null, partitions.keySet, ontology)
   }
 
 }
