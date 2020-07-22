@@ -3,11 +3,21 @@ package net.sansa_stack.query.flink.ontop
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
+import scala.reflect.runtime.universe.typeOf
+
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala.DataSet
 import org.apache.flink.table.api.bridge.scala.BatchTableEnvironment
 
 import net.sansa_stack.query.common.ontop.{BlankNodeStrategy, SQLUtils}
 import net.sansa_stack.rdf.common.partition.core.RdfPartitionComplex
+import org.apache.flink.table.api._
+import org.apache.flink.types.Row
+import org.apache.flink.table.api._
+import org.apache.flink.table.api.bridge.scala._
+import org.apache.flink.api.scala._
+
+import net.sansa_stack.rdf.common.partition.schema.{SchemaStringDate, SchemaStringDouble, SchemaStringLong, SchemaStringString, SchemaStringStringLang, SchemaStringStringType}
 
 /**
  * @author Lorenz Buehmann
@@ -62,13 +72,38 @@ class FlinkTableGenerator(env: BatchTableEnvironment,
   /**
    * creates a Flink table for each RDF partition
    */
-  private def createFlinkTable(p: RdfPartitionComplex, dataSet: DataSet[Product]) = {
+  private def createFlinkTable(p: RdfPartitionComplex, ds: DataSet[Product]) = {
 
-    val name = SQLUtils.createTableName(p, blankNodeStrategy)
-    logger.debug(s"creating Spark table ${escapeTablename(name)}")
+    var tableName = SQLUtils.createTableName(p, blankNodeStrategy)
+    logger.debug(s"creating Spark table ${escapeTablename(tableName)}")
+    tableName = escapeTablename(tableName)
 
-    val scalaSchema = p.layout.schema
-    env.createTemporaryView(escapeTablename(name), dataSet)
+//    dataSet.map(p => Row.of(p.productIterator.toSeq)).print()
+//    env.fromDataSet(dataSet, $"s", $"o").as(escapeTablename(tableName)) // createTemporaryView(escapeTablename(name), dataSet)
+
+    val q = p.layout.schema
+    q match {
+      case q if q =:= typeOf[SchemaStringLong] =>
+        var fn = (r: Product) => r.asInstanceOf[SchemaStringLong]
+        env.createTemporaryView(tableName, ds.map (fn))
+      case q if q =:= typeOf[SchemaStringString] =>
+        var fn = (r: Product) => r.asInstanceOf[SchemaStringString]
+        env.createTemporaryView(tableName, ds.map (fn))
+      case q if q =:= typeOf[SchemaStringStringType] =>
+        var fn = (r: Product) => r.asInstanceOf[SchemaStringStringType]
+        env.createTemporaryView(tableName, ds.map (fn))
+      case q if q =:= typeOf[SchemaStringDouble] =>
+        var fn = (r: Product) => r.asInstanceOf[SchemaStringDouble]
+        env.createTemporaryView(tableName, ds.map (fn))
+      case q if q =:= typeOf[SchemaStringStringLang] =>
+        var fn = (r: Product) => r.asInstanceOf[SchemaStringStringLang]
+        env.createTemporaryView(tableName, ds.map (fn))
+      case q if q =:= typeOf[SchemaStringDate] =>
+        var fn = (r: Product) => r.asInstanceOf[SchemaStringDate]
+        env.createTemporaryView(tableName, ds.map (fn))
+      case _ =>
+        throw new RuntimeException("Unhandled schema type: " + q)
+    }
   }
 
   private def escapeTablename(path: String): String =

@@ -29,6 +29,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>sansa-rdf-flink${scala.version.suffix}</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.scopt</groupId>
+                    <artifactId>scopt${scala.version.suffix}</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -153,6 +159,11 @@
             <version>${version.owlapi.ontop}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_${scala.binary.version}</artifactId>
+            <version>4.0.0-RC2</version>
+        </dependency>
 
     </dependencies>
 

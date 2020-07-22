@@ -6,11 +6,11 @@ import benchmark.generator.Generator
 import benchmark.serializer.SerializerModel
 import com.google.common.collect.HashMultimap
 import de.javakaffee.kryoserializers.guava.HashMultimapSerializer
+
 import net.sansa_stack.rdf.common.kryo.jena.JenaKryoSerializers._
 import net.sansa_stack.rdf.common.partition.core.RdfPartitionDefault
 import net.sansa_stack.rdf.common.partition.schema.SchemaStringString
 import net.sansa_stack.rdf.flink.partition.core.RdfPartitionUtilsFlink
-import net.sansa_stack.rdf.spark.kryo.sparqlify.RestrictedExprSerializer
 import org.aksw.jena_sparql_api.core.FluentQueryExecutionFactory
 import org.aksw.jena_sparql_api.stmt.SparqlQueryParserImpl
 import org.aksw.jena_sparql_api.views.RestrictedExpr
@@ -20,6 +20,8 @@ import org.apache.flink.table.api.bridge.scala.BatchTableEnvironment
 import org.apache.jena.graph.{Node, Triple}
 import org.apache.jena.query.{Query, ResultSetFormatter}
 import org.scalatest._
+
+import net.sansa_stack.query.common.kryo.RestrictedExprSerializer
 
 class TestRdfPartitionFlink extends FlatSpec {
 
